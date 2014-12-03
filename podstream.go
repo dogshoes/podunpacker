@@ -2,7 +2,9 @@ package main
 
 import (
 	"os"
+	"bufio"
 	"errors"
+	"bytes"
 	"encoding/binary"
 )
 
@@ -17,30 +19,68 @@ func NewPodStream(podfile *os.File) (*PodStream) {
 	return podstream
 }
 
-func (podstream *PodStream) ReadUInt(position int64) (*uint32, error) {
-	value, err := podstream.ReadBytes(position, 4)
+func (podstream *PodStream) Seek(offset int64, whence int) (int64) {
+	ret, err := podstream.podfile.Seek(offset, whence)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	result := binary.LittleEndian.Uint32(value)
-	return &result, nil
+	return ret
 }
 
-func (podstream *PodStream) ReadString(position int64, length int) (*string, error) {
-	value, err := podstream.ReadBytes(position, length)
+func (podstream *PodStream) ReadInt() (int32) {
+	value, err := podstream.ReadBytes(4)
 	if err != nil {
-		return nil, err
+		panic(err)
+	}
+
+	var result int32
+	err = binary.Read(bytes.NewBuffer(value), binary.LittleEndian, &result)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func (podstream *PodStream) ReadString(length int) (string) {
+	value, err := podstream.ReadBytes(length)
+	if err != nil {
+		panic(err)
 	}
 
 	result := string(value[:])
 
-	return &result, nil
+	return result
 }
 
-func (podstream *PodStream) ReadBytes(position int64, length int) ([]byte, error) {
-	podstream.podfile.Seek(position, 0)
+func (podstream *PodStream) ReadNullTerminatedString() (string) {
+	value, err := podstream.ReadUntil(0x00)
+	if err != nil {
+		panic(err)
+	}
 
+	result := string(value[:])
+
+	return result
+}
+
+func (podstream *PodStream) Tell() (int64) {
+	ret, err := podstream.podfile.Seek(0, os.SEEK_CUR)
+	if err != nil {
+		panic(err)
+	}
+
+	return ret
+}
+
+func (podstream *PodStream) ReadUntil(delim byte) ([]byte, error) {
+	reader := bufio.NewReader(podstream.podfile)
+
+	return reader.ReadBytes(delim)
+}
+
+func (podstream *PodStream) ReadBytes(length int) ([]byte, error) {
 	value := make([]byte, length)
 
 	bytecount, err := podstream.podfile.Read(value)
