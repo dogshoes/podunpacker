@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -9,7 +10,14 @@ import (
 )
 
 func main() {
-	podfile := os.Stdin
+	unpack, podfilename := SetupFlags()
+
+	podfile, err := os.Open(podfilename)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("Could not open the specified POD file %s: %s", podfilename, err.Error())))
+	}
+
+	defer podfile.Close()
 
 	podreader, err := NewPodReader(podfile)
 	if err != nil {
@@ -40,10 +48,34 @@ func main() {
 
 		fmt.Println(fmt.Sprintf("* %s (%d bytes / %d bytes), u1: %x, u2: %x, u3: %x", file.name, file.size, file.size2, file.unknown1, file.unknown2, file.unknown3))
 
-		ExtractFile(podreader, file)
+		if unpack {
+			ExtractFile(podreader, file)
+		}
 	}
 
 	os.Exit(0)
+}
+
+func SetupFlags() (bool, string) {
+	unpack := flag.Bool("e", false, "Unpack all of the files in the .pod archive.")
+
+	flag.Usage = func() {
+		fmt.Println(fmt.Sprintf("Usage: %s [OPTION]... [FILE]", os.Args[0]))
+		fmt.Println("Examine and unpack .pod files from select PS2 games.")
+		fmt.Println("")
+		fmt.Println("\t-e\tUnpack the files inside the .pod file into the current working directory.")
+	}
+
+	flag.Parse()
+
+	if flag.NArg() != 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	filename := flag.Args()[0]
+
+	return *unpack, filename
 }
 
 func ExtractFile(podreader *PodReader, file PodFile) {
