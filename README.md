@@ -1,10 +1,10 @@
 ## podunpacker
 
-A tool to examine and extract files from .pod files used in certain PlayStation 2 (PS2) games.
+A tool to examine and extract files from .pod archives used in certain PlayStation 2 (PS2) games.
 
 ### Installing
 
-Install the go compiler for your environment and run the following command.
+[Install the go compiler for your environment](http://golang.org/doc/install) and [configure your environment](http://golang.org/doc/install#gopath).  Download podunpacker using the following command.
 
 ```ShellSession
 [dogshoes@oxcart ~]# go get github.com/dogshoes/podunpacker
