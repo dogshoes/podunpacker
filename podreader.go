@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"io"
 	"fmt"
 	"errors"
 	"strconv"
@@ -33,6 +34,35 @@ func NewPodReader(podfile *os.File) (*PodReader, error) {
 	podreader.version = version
 
 	return podreader, nil
+}
+
+func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) (error) {
+	podstream := podreader.podstream
+
+	podstream.Seek(int64(file.offset), os.SEEK_SET)
+
+	size := file.size
+	buffersize := int32(1024)
+	buff := make([]byte, buffersize)
+	
+	for size > 0 {
+		read, readerr := podstream.Read(buff)
+		if read == 0 {
+			// EOF
+			break
+		} else if readerr != nil {
+			return readerr
+		}
+
+		_, err := out.Write(buff[:read])
+		if err != nil {
+			return err
+		}
+	
+		size = size - buffersize
+	}
+
+	return nil
 }
 
 func (podreader *PodReader) ReadFileTable() ([]PodFile) {

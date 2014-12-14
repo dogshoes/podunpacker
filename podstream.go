@@ -77,7 +77,18 @@ func (podstream *PodStream) Tell() (int64) {
 func (podstream *PodStream) ReadUntil(delim byte) ([]byte, error) {
 	reader := bufio.NewReader(podstream.podfile)
 
-	return reader.ReadBytes(delim)
+	result, err := reader.ReadBytes(delim)
+	if err != nil {
+		return nil, err
+	}
+
+	// Trim off the last byte we receive which will be our delim.
+	length := len(result)
+	if length > 0 {
+		length = length - 1
+	}
+
+	return result[:length], nil
 }
 
 func (podstream *PodStream) ReadBytes(length int) ([]byte, error) {
@@ -92,4 +103,8 @@ func (podstream *PodStream) ReadBytes(length int) ([]byte, error) {
 	}
 
 	return value, nil
+}
+
+func (podstream *PodStream) Read(p []byte) (int, error) {
+	return podstream.podfile.Read(p)
 }
