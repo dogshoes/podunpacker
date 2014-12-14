@@ -24,7 +24,7 @@ func NewPodReader(podfile *os.File) (*PodReader, error) {
 	podreader.podstream = NewPodStream(podfile)
 
 	if podreader.VerifyMagic() == false {
-		return nil, errors.New("Input file is not a POD file.")
+		return nil, errors.New("Input file is not a POD file, does not start with POD magic.")
 	}
 
 	version := podreader.GetVersion()
@@ -48,9 +48,8 @@ func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) error {
 
 	for size > 0 {
 		read, readerr := podstream.Read(buff)
-		if read == 0 {
-			// EOF
-			break
+		if read == 0 || readerr == io.EOF {
+			return errors.New("Could not read all of file, ran into EOF of the POD!")
 		} else if readerr != nil {
 			return readerr
 		}
@@ -125,6 +124,8 @@ func (podreader *PodReader) ReadFileTable() []PodFile {
 
 func (podreader *PodReader) GetFileTableAddress() int32 {
 	podstream := podreader.podstream
+
+	// Will this magic location be the same in all versions?
 	podstream.Seek(264, os.SEEK_SET)
 
 	return podstream.ReadInt()
@@ -132,6 +133,8 @@ func (podreader *PodReader) GetFileTableAddress() int32 {
 
 func (podreader *PodReader) GetVersion() int {
 	podstream := podreader.podstream
+
+	// Seek past "POD" to the version string byte.
 	podstream.Seek(3, os.SEEK_SET)
 
 	// Version is stored as a string and as part of the magic ("POD5"),
@@ -147,6 +150,8 @@ func (podreader *PodReader) GetVersion() int {
 
 func (podreader *PodReader) GetFileCount() int32 {
 	podstream := podreader.podstream
+
+	// Will this magic location be the same across all POD versions?
 	podstream.Seek(88, os.SEEK_SET)
 
 	return podstream.ReadInt()

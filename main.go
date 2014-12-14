@@ -29,23 +29,31 @@ func main() {
 
 		fmt.Println(fmt.Sprintf("* %s (%d bytes / %d bytes), u1: %x, u2: %x, u3: %x", file.name, file.size, file.size2, file.unknown1, file.unknown2, file.unknown3))
 
-		outpath := NormalizePodPath(file.name)
-		if patherr := FilePathIsValid(outpath); patherr != nil {
-			panic(patherr)
-		}
-
-		handle, err := CreateFile(outpath)
-		if err != nil {
-			panic(err)
-		}
-
-		podreader.ReadFile(file, handle)
-
-		handle.Sync()
-		handle.Close()
+		ExtractFile(podreader, file)
 	}
 
 	os.Exit(0)
+}
+
+func ExtractFile(podreader *PodReader, file PodFile) {
+	outpath := NormalizePodPath(file.name)
+
+	if err := FilePathIsValid(outpath); err != nil {
+		panic(err)
+	}
+
+	handle, err := CreateFile(outpath)
+	if err != nil {
+		panic(err)
+	}
+
+	defer handle.Close()
+
+	if err := podreader.ReadFile(file, handle); err != nil {
+		panic(err)
+	}
+
+	handle.Sync()
 }
 
 func NormalizePodPath(podpath string) string {
@@ -55,7 +63,7 @@ func NormalizePodPath(podpath string) string {
 
 func FilePathIsValid(normalizedpath string) error {
 	if path.IsAbs(normalizedpath) {
-		return errors.New(fmt.Sprintf("Cannot unpack file with absolute file path: %s.", normalizedpath))
+		return errors.New(fmt.Sprintf("Cannot unpack file with embedded absolute file path: %s", normalizedpath))
 	}
 
 	return nil
