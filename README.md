@@ -4,7 +4,7 @@ A tool to examine and extract files from .pod archives used in certain PlayStati
 
 ### Installing
 
-[Install the go compiler for your environment](http://golang.org/doc/install) and [configure your environment](http://golang.org/doc/install#gopath).  Download podunpacker using the following command.
+[Install the go compiler for your operating system](http://golang.org/doc/install) and [configure your workspace environment](http://golang.org/doc/install#gopath).  Download podunpacker using the following command.
 
 ```ShellSession
 [dogshoes@oxcart ~]# go get github.com/dogshoes/podunpacker
