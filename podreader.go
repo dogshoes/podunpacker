@@ -1,21 +1,21 @@
 package main
 
 import (
-	"os"
-	"io"
-	"fmt"
 	"errors"
+	"fmt"
+	"io"
+	"os"
 	"strconv"
 )
 
 type PodReader struct {
 	podstream *PodStream
-	version int
+	version   int
 }
 
 type PodFile struct {
-	size, offset, size2 int32
-	name string
+	size, offset, size2          int32
+	name                         string
 	unknown1, unknown2, unknown3 []byte
 }
 
@@ -37,7 +37,7 @@ func NewPodReader(podfile *os.File) (*PodReader, error) {
 	return podreader, nil
 }
 
-func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) (error) {
+func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) error {
 	podstream := podreader.podstream
 
 	podstream.Seek(int64(file.offset), os.SEEK_SET)
@@ -45,7 +45,7 @@ func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) (error) {
 	size := file.size
 	buffersize := int32(1024)
 	buff := make([]byte, buffersize)
-	
+
 	for size > 0 {
 		read, readerr := podstream.Read(buff)
 		if read == 0 {
@@ -59,14 +59,14 @@ func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) (error) {
 		if err != nil {
 			return err
 		}
-	
+
 		size = size - buffersize
 	}
 
 	return nil
 }
 
-func (podreader *PodReader) ReadFileTable() ([]PodFile) {
+func (podreader *PodReader) ReadFileTable() []PodFile {
 	podstream := podreader.podstream
 
 	filecount := podreader.GetFileCount()
@@ -93,7 +93,7 @@ func (podreader *PodReader) ReadFileTable() ([]PodFile) {
 		if podfile.unknown1, err = podstream.ReadBytes(4); err != nil {
 			panic(err)
 		}
-		
+
 		if podfile.unknown2, err = podstream.ReadBytes(4); err != nil {
 			panic(err)
 		}
@@ -111,21 +111,21 @@ func (podreader *PodReader) ReadFileTable() ([]PodFile) {
 
 	// Second pass: Read the data at the end of the TOC (file names)
 	for i := 0; i < int(filecount); i++ {
-		podstream.Seek(namedictionarystart + nametablepositions[i], os.SEEK_SET)
+		podstream.Seek(namedictionarystart+nametablepositions[i], os.SEEK_SET)
 		ret[i].name = podstream.ReadNullTerminatedString()
 	}
 
 	return ret
 }
 
-func (podreader *PodReader) GetFileTableAddress() (int32) {
+func (podreader *PodReader) GetFileTableAddress() int32 {
 	podstream := podreader.podstream
 	podstream.Seek(264, os.SEEK_SET)
 
 	return podstream.ReadInt()
 }
 
-func (podreader *PodReader) GetVersion() (int) {
+func (podreader *PodReader) GetVersion() int {
 	podstream := podreader.podstream
 	podstream.Seek(3, os.SEEK_SET)
 
@@ -140,14 +140,14 @@ func (podreader *PodReader) GetVersion() (int) {
 	return ivalue
 }
 
-func (podreader *PodReader) GetFileCount() (int32) {
+func (podreader *PodReader) GetFileCount() int32 {
 	podstream := podreader.podstream
 	podstream.Seek(88, os.SEEK_SET)
 
 	return podstream.ReadInt()
 }
 
-func (podreader *PodReader) VerifyMagic() (bool) {
+func (podreader *PodReader) VerifyMagic() bool {
 	podstream := podreader.podstream
 	podstream.Seek(0, os.SEEK_SET)
 

@@ -1,25 +1,25 @@
 package main
 
 import (
-	"os"
 	"bufio"
-	"errors"
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"os"
 )
 
 type PodStream struct {
 	podfile *os.File
 }
 
-func NewPodStream(podfile *os.File) (*PodStream) {
+func NewPodStream(podfile *os.File) *PodStream {
 	podstream := new(PodStream)
 	podstream.podfile = podfile
 
 	return podstream
 }
 
-func (podstream *PodStream) Seek(offset int64, whence int) (int64) {
+func (podstream *PodStream) Seek(offset int64, whence int) int64 {
 	ret, err := podstream.podfile.Seek(offset, whence)
 	if err != nil {
 		panic(err)
@@ -28,7 +28,7 @@ func (podstream *PodStream) Seek(offset int64, whence int) (int64) {
 	return ret
 }
 
-func (podstream *PodStream) ReadInt() (int32) {
+func (podstream *PodStream) ReadInt() int32 {
 	value, err := podstream.ReadBytes(4)
 	if err != nil {
 		panic(err)
@@ -43,7 +43,7 @@ func (podstream *PodStream) ReadInt() (int32) {
 	return result
 }
 
-func (podstream *PodStream) ReadString(length int) (string) {
+func (podstream *PodStream) ReadString(length int) string {
 	value, err := podstream.ReadBytes(length)
 	if err != nil {
 		panic(err)
@@ -54,7 +54,7 @@ func (podstream *PodStream) ReadString(length int) (string) {
 	return result
 }
 
-func (podstream *PodStream) ReadNullTerminatedString() (string) {
+func (podstream *PodStream) ReadNullTerminatedString() string {
 	value, err := podstream.ReadUntil(0x00)
 	if err != nil {
 		panic(err)
@@ -65,7 +65,7 @@ func (podstream *PodStream) ReadNullTerminatedString() (string) {
 	return result
 }
 
-func (podstream *PodStream) Tell() (int64) {
+func (podstream *PodStream) Tell() int64 {
 	ret, err := podstream.podfile.Seek(0, os.SEEK_CUR)
 	if err != nil {
 		panic(err)

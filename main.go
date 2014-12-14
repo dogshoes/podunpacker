@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os"
+	"errors"
 	"fmt"
+	"os"
 	"path"
 	"strings"
-	"errors"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		
+
 		podreader.ReadFile(file, handle)
 
 		handle.Sync()
@@ -48,12 +48,12 @@ func main() {
 	os.Exit(0)
 }
 
-func NormalizePodPath(podpath string) (string) {
+func NormalizePodPath(podpath string) string {
 	pathparts := strings.Split(podpath, "\\")
 	return strings.Join(pathparts, "/")
 }
 
-func FilePathIsValid(normalizedpath string) (error) {
+func FilePathIsValid(normalizedpath string) error {
 	if path.IsAbs(normalizedpath) {
 		return errors.New(fmt.Sprintf("Cannot unpack file with absolute file path: %s.", normalizedpath))
 	}
@@ -69,7 +69,7 @@ func CreateFile(normalizedpath string) (*os.File, error) {
 		}
 	}
 
-	handle, err := os.OpenFile(normalizedpath, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0664)
+	handle, err := os.OpenFile(normalizedpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664)
 	if err != nil {
 		return nil, err
 	}
