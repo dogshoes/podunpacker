@@ -14,8 +14,9 @@ type PodReader struct {
 }
 
 type PodFile struct {
-	size, offset, size2, unknown1, unknown2, unknown3 int32
+	size, offset, size2 int32
 	name string
+	unknown1, unknown2, unknown3 []byte
 }
 
 func NewPodReader(podfile *os.File) (*PodReader, error) {
@@ -80,6 +81,7 @@ func (podreader *PodReader) ReadFileTable() ([]PodFile) {
 
 	// First pass: read the data at the front of the TOC (position and size data).
 	for i := 0; i < int(filecount); i++ {
+		var err error
 		// Tuck away the seek offset to use in the next step.
 		nametablepositions[i] = int64(podstream.ReadInt())
 
@@ -88,9 +90,17 @@ func (podreader *PodReader) ReadFileTable() ([]PodFile) {
 		podfile.size = podstream.ReadInt()
 		podfile.offset = podstream.ReadInt()
 		podfile.size2 = podstream.ReadInt()
-		podfile.unknown1 = podstream.ReadInt()
-		podfile.unknown2 = podstream.ReadInt()
-		podfile.unknown3 = podstream.ReadInt()
+		if podfile.unknown1, err = podstream.ReadBytes(4); err != nil {
+			panic(err)
+		}
+		
+		if podfile.unknown2, err = podstream.ReadBytes(4); err != nil {
+			panic(err)
+		}
+
+		if podfile.unknown3, err = podstream.ReadBytes(4); err != nil {
+			panic(err)
+		}
 
 		ret[i] = *podfile
 	}

@@ -27,7 +27,7 @@ func main() {
 	for i := 0; i < len(files); i++ {
 		file := files[i]
 
-		fmt.Println(fmt.Sprintf("* %s (%d bytes / %d bytes), u1: %d, u2: %d, u3: %d", file.name, file.size, file.size2, file.unknown1, file.unknown2, file.unknown3))
+		fmt.Println(fmt.Sprintf("* %s (%d bytes / %d bytes), u1: %x, u2: %x, u3: %x", file.name, file.size, file.size2, file.unknown1, file.unknown2, file.unknown3))
 
 		outpath := NormalizePodPath(file.name)
 		if patherr := FilePathIsValid(outpath); patherr != nil {
