@@ -16,13 +16,24 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(fmt.Sprintf("Input is a POD file, version %d.", podreader.GetVersion()))
+	version, err := podreader.GetVersion()
+	if err != nil {
+		panic(err)
+	}
 
-	filecount := podreader.GetFileCount()
+	fmt.Println(fmt.Sprintf("Input is a POD file, version %d.", version))
+
+	filecount, err := podreader.GetFileCount()
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(fmt.Sprintf("Found %d files.", filecount))
 
-	files := podreader.ReadFileTable()
+	files, err := podreader.ReadFileTable()
+	if err != nil {
+		panic(err)
+	}
 
 	for i := 0; i < len(files); i++ {
 		file := files[i]

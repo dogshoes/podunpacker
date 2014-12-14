@@ -19,59 +19,54 @@ func NewPodStream(podfile *os.File) *PodStream {
 	return podstream
 }
 
-func (podstream *PodStream) Seek(offset int64, whence int) int64 {
-	ret, err := podstream.podfile.Seek(offset, whence)
-	if err != nil {
-		panic(err)
-	}
-
-	return ret
+func (podstream *PodStream) Seek(offset int64, whence int) (int64, error) {
+	return podstream.podfile.Seek(offset, whence)
 }
 
-func (podstream *PodStream) ReadInt() int32 {
+func (podstream *PodStream) ReadInt() (int32, error) {
 	value, err := podstream.ReadBytes(4)
 	if err != nil {
-		panic(err)
+		return -1, err
 	}
 
 	var result int32
 	err = binary.Read(bytes.NewBuffer(value), binary.LittleEndian, &result)
 	if err != nil {
-		panic(err)
+		return -1, err
 	}
 
-	return result
+	return result, nil
 }
 
-func (podstream *PodStream) ReadString(length int) string {
+func (podstream *PodStream) ReadString(length int) (string, error) {
 	value, err := podstream.ReadBytes(length)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	result := string(value[:])
 
-	return result
+	return result, nil
 }
 
-func (podstream *PodStream) ReadNullTerminatedString() string {
+func (podstream *PodStream) ReadNullTerminatedString() (string, error) {
 	value, err := podstream.ReadUntil(0x00)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	result := string(value[:])
 
-	return result
+	return result, nil
 }
 
-func (podstream *PodStream) Tell() int64 {
+func (podstream *PodStream) Tell() (int64, error) {
 	ret, err := podstream.podfile.Seek(0, os.SEEK_CUR)
 	if err != nil {
-		panic(err)
+		return -1, err
 	}
 
-	return ret
+	return ret, nil
 }
 
 func (podstream *PodStream) ReadUntil(delim byte) ([]byte, error) {
