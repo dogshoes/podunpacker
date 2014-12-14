@@ -55,7 +55,12 @@ func (podreader *PodReader) ReadFile(file PodFile, out io.Writer) error {
 			return readerr
 		}
 
-		_, err := out.Write(buff[:read])
+		windowsize := buffersize
+		if size < buffersize {
+			windowsize = size
+		}
+
+		_, err := out.Write(buff[:windowsize])
 		if err != nil {
 			return err
 		}
